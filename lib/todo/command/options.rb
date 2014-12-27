@@ -10,7 +10,7 @@ module Todo
         options = {}
 
         # サブコマンドなどの OptionParser を定義
-        sub_command_parsers = create_sub_command_parsers
+        sub_command_parsers = create_sub_command_parsers(options)
         command_parser      = create_command_parser
 
         # 引数の解析を行う
@@ -29,9 +29,11 @@ module Todo
         rescue OptionParser::MissingArgument, OptionParser::InvalidOption, ArgumentError => e
           abort e.message
         end
+
+        options
       end
 
-      def self.create_sub_command_parsers
+      def self.create_sub_command_parsers(options)
         # サブコマンドの処理をする際に、未定義の key を指定されたら例外を発生させる
         sub_command_parsers = Hash.new do |k, v|
           raise ArgumentError, "'#{v}' is not todo sub command."
@@ -42,6 +44,12 @@ module Todo
           opt.banner = 'Usage: create <args>'
           opt.on('-n VAL', '--name=VAL',    'task name')    {|v| options[:name] = v }
           opt.on('-c VAL', '--content=VAL', 'task content') {|v| options[:content] = v }
+          opt.on_tail('-h', '--help', 'Show this message')  {|v| help_sub_command(opt) }
+        end
+
+        sub_command_parsers['list'] = OptionParser.new do |opt|
+          opt.banner = 'Usage: list <args>'
+          opt.on('-s VAL', '--status=VAL',  'list status')  {|v| options[:status]  = v }
           opt.on_tail('-h', '--help', 'Show this message')  {|v| help_sub_command(opt) }
         end
 
